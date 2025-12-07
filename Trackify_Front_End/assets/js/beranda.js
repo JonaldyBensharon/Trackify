@@ -1,3 +1,5 @@
+import { API_URL } from "./config.js";
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Beranda.js dimuat');
    
@@ -638,7 +640,7 @@ function updateTodoTimes() {
 setInterval(updateTodoTimes, 3600000);
 
 // ================= Backend Wiring =================
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = API_URL;
 
 function authHeaders() {
     const token = localStorage.getItem('token');

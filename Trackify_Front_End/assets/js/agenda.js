@@ -1,3 +1,5 @@
+import { API_URL } from "./config.js";
+
 // sidebar functionality
 const hamburgerBtn = document.getElementById('hamburgerBtn');
 const closeSidebar = document.getElementById('closeSidebar');
@@ -44,7 +46,7 @@ document.addEventListener('keydown', function(event) {
 
 document.addEventListener('DOMContentLoaded', function() {
     // Konfigurasi API
-        const API_BASE_URL = 'http://localhost:3000/api'; // Port 3000
+        const API_BASE_URL = API_URL; 
     let todos = [];
         // Use local timezone date to avoid UTC shifting to yesterday
         function localYMD(d = new Date()) {

@@ -1,1 +1,1 @@
-export const API_URL = "http://localhost:3000/api"
+export const API_URL = "https://trackify-production-8d04.up.railway.app/api"

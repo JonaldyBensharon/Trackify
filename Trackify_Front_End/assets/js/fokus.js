@@ -1,6 +1,8 @@
+import { API_URL } from "./config.js";
+
 document.addEventListener('DOMContentLoaded', function() {
     // Konstanta API
-    const API_BASE = 'http://localhost:3000/api';
+    const API_BASE = API_URL;
     const API_GOALS = `${API_BASE}/goals`;
     const API_STUDY_SESSIONS = `${API_BASE}/study-sessions`;
     const API_DAILY_SUMMARIES = `${API_BASE}/daily-summaries`; // ✅ TAMBAH INI
