@@ -1,19 +1,18 @@
+import { API_URL } from "./config.js"; 
+
 document.addEventListener('DOMContentLoaded', () => {
   const panelLogin = document.getElementById('panelLogin');
   const panelRegister = document.getElementById('panelRegister');
   const panelPemulihan = document.getElementById('panelPemulihan');
   const panelResetPassword = document.getElementById('panelResetPassword');
 
-
   const formLogin = document.getElementById('formLogin');
   const loginUsername = document.getElementById('login-username');
   const loginPassword = document.getElementById('login-password');
 
-
   const tombolLogin = document.getElementById('tombolLogin');
   const tombolRegister = document.getElementById('tombolRegister');
   const tombolLupaPassword = document.getElementById('tombolLupaPassword');
-
 
   const formRegister = document.getElementById('formRegister');
   const registerFullname = document.getElementById('register-namalengkap');
@@ -22,13 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const tombolDaftar = document.getElementById('tombolDaftar');
   const tombolBatal = document.getElementById('tombolBatal');
 
-
   const formLupa = document.getElementById('formLupaPassword');
   const lupaUsername = document.getElementById('lupa-username');
   const lupaPin = document.getElementById('lupa-pin');
   const tombolVerifikasi = document.getElementById('tombolVerifikasi');
   const tombolBatalPemulihan = document.getElementById('tombolBatalPemulihan');
-
 
   const formReset = document.getElementById('formResetPassword');
   const resetPassword = document.getElementById('reset-password');
@@ -40,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const popupText = document.getElementById('popupText');
   const popupBtn = document.getElementById('popupBtn');
 
+  const API_BASE = API_URL;
 
   // safety: jika elemen penting tidak ditemukan, tunjukkan peringatan di console
   const required = [
@@ -52,10 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!el) console.warn(`Elemen "${name}" tidak ditemukan.`);
   });
 
-
   let currentResetUser = null;
-  const API_BASE = 'http://localhost:3000/api/users';
-
 
   // Handler untuk error inline
   function setError(id, message) {
@@ -79,7 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-
   function clearAllErrorsInForm(formEl) {
     if (!formEl) return;
     const errs = formEl.querySelectorAll('.error-text');
@@ -94,13 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-
   // Pop-up Handler
   function showPopup(messageHtml, withCopy = false, copyText = '') {
     popupText.innerHTML = messageHtml;
     const oldCopy = popupText.querySelector('.popup-copy-btn');
     if (oldCopy) oldCopy.remove();
-
 
     if (withCopy && copyText) {
       const copyBtn = document.createElement('button');
@@ -121,7 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
       popupText.appendChild(copyBtn);
     }
 
-
     // Tampilkan Pop-up
     popupOverlay.classList.add('tampil');
     popupBtn.focus();
@@ -131,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     popupBtn.addEventListener('click', onOk);
   }
-
 
   // Peralihan panel
   function tampilPanel(el) {
@@ -148,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-
   // Tombol pada halaman registrasi
   if (tombolRegister) {
     tombolRegister.addEventListener('click', (e) => {
@@ -157,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (registerUsername) registerUsername.focus();
     });
   }
-
 
   if (tombolBatal) {
     tombolBatal.addEventListener('click', (e) => {
@@ -168,7 +156,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-
   // Tombol lupa password
   if (tombolLupaPassword) {
     tombolLupaPassword.addEventListener('click', (e) => {
@@ -177,7 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (lupaUsername) lupaUsername.focus();
     });
   }
-
 
   // Tombol batal pemulihan akun
   if (tombolBatalPemulihan) {
@@ -188,7 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-
   // Tombol batal reset password
   if (tombolBatalReset) {
     tombolBatalReset.addEventListener('click', (e) => {
@@ -197,7 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
       tampilPanel(panelLogin);
     });
   }
-
 
   // Attach input listeners to clear per-field error on input
   const mapInputsToErrors = [
@@ -211,7 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
     {input: resetPassword, errId: 'err-reset-password'}
   ];
 
-
   mapInputsToErrors.forEach(mapping => {
     if (!mapping.input) return;
     mapping.input.addEventListener('input', () => {
@@ -219,33 +202,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-
   // ========== FORM REGISTER ==========
   if (formRegister) {
     formRegister.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearAllErrorsInForm(formRegister);
 
-
       const fullname = registerFullname.value.trim();
       const username = registerUsername.value.trim();
       const password = registerPassword.value.trim();
 
-
       let valid = true;
-
 
       if (!fullname) {
         setError('err-register-namalengkap', 'Nama lengkap wajib diisi');
         valid = false;
       }
 
-
       if (!username) {
         setError('err-register-username', 'Nama pengguna wajib diisi');
         valid = false;
       }
-
 
       if (!password) {
         setError('err-register-password', 'Kata sandi wajib diisi');
@@ -255,24 +232,20 @@ document.addEventListener('DOMContentLoaded', () => {
         valid = false;
       }
 
-
       if(!valid) return;
 
-
       try {
-        const res = await fetch(`${API_BASE}/register`, {
+        const res = await fetch(`${API_BASE}/users/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ fullname, username, password })
         });
         const data = await res.json();
 
-
         if (!res.ok) {
           showPopup(data.error || 'Terjadi kesalahan pada proses registrasi');
           return;
         }
-
 
         // Reset form
         formRegister.reset();
@@ -295,26 +268,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-
   // ========== FORM LOGIN ==========
   if (formLogin) {
     formLogin.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearAllErrorsInForm(formLogin);
 
-
       const username = (loginUsername && loginUsername.value || '').trim();
       const password = (loginPassword && loginPassword.value || '').trim();
 
-
       let valid = true;
-
 
       if (!username) {
         setError('err-login-username', 'Nama pengguna wajib diisi');
         valid = false;
       }
-
 
       if (!password) {
         setError('err-login-password', 'Kata sandi wajib diisi');
@@ -324,26 +292,21 @@ document.addEventListener('DOMContentLoaded', () => {
         valid = false;
       }
 
-
       if (!valid) return;
 
-
       try {
-        const res = await fetch(`${API_BASE}/login`, {
+        const res = await fetch(`${API_BASE}/users/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
         const data = await res.json();
 
-
         if (!res.ok) {
           showPopup(data.error || 'Login gagal');
           return;
         }
 
-
-        // ========== PERBAIKAN DI SINI ==========
         // Format data user dengan konsisten
         const userData = {
           id: data.user?.id || null,
@@ -353,15 +316,12 @@ document.addEventListener('DOMContentLoaded', () => {
           created_at: data.user?.created_at || new Date().toISOString()
         };
 
-
         // Simpan ke localStorage
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(userData));
 
-
         // Pesan Selamat
         showPopup(`Selamat datang, ${userData.fullname || userData.username}!`);
-
 
         // Redirect ke profile.html setelah 2 detik
         setTimeout(() => {
@@ -375,26 +335,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-
   // ========== FORM LUPA PASSWORD ==========
   if (formLupa) {
     formLupa.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearAllErrorsInForm(formLupa);
 
-
       const username = (lupaUsername && lupaUsername.value || '').trim();
       const pin = (lupaPin && lupaPin.value || '').trim();
 
-
       let valid = true;
-
 
       if (!username) {
         setError('err-lupa-username', 'Nama pengguna wajib diisi');
         valid = false;
       }
-
 
       if (!pin) {
         setError('err-lupa-pin', 'PIN pemulihan wajib diisi');
@@ -404,28 +359,23 @@ document.addEventListener('DOMContentLoaded', () => {
         valid = false;
       }
 
-
       if(!valid) return;
 
-
       try {
-        const res = await fetch(`${API_BASE}/verify-pin`, {
+        const res = await fetch(`${API_BASE}/users/verify-pin`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, pin })
         });
         const data = await res.json();
 
-
         if (!res.ok) {
           showPopup(data.error || 'Verifikasi PIN gagal');
           return;
         }
 
-
         // Bila berhasil
         currentResetUser = username;
-
 
         // Alihkan ke panel reset password
         showPopup('Verifikasi berhasil. Silakan buat password baru.');
@@ -443,13 +393,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-
   // ========== FORM RESET PASSWORD ==========
   if (formReset) {
     formReset.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearAllErrorsInForm(formReset);
-
 
       const newPassword = (resetPassword && resetPassword.value || '').trim();
       if (!newPassword) {
@@ -461,25 +409,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-
       try {
-        const res = await fetch(`${API_BASE}/reset-password`, {
+        const res = await fetch(`${API_BASE}/users/reset-password`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: currentResetUser, newPassword })
         });
         const data = await res.json();
 
-
         if (!res.ok) {
           showPopup(data.error || 'Reset password gagal');
           return;
         }
 
-
         currentResetUser = null;
         formReset.reset();
-
 
         showPopup('Password berhasil diubah. Silakan login dengan password baru.');
         const onOk = () => {
@@ -495,7 +439,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-
 
   // initial focus
   if (loginUsername) loginUsername.focus();

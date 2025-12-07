@@ -15,7 +15,12 @@ async function createUser(fullname, username, passwordHash, pinHash, profilePict
 
 // Cari user berdasarkan username
 async function findUserByUsername(username) {
-    const query = `SELECT * FROM users WHERE username = $1;`;
+    const query = `
+        SELECT *
+        FROM users
+        WHERE username = $1
+        LIMIT 1;
+    `;
     const { rows } = await pool.query(query, [username]);
     return rows[0];
 }
@@ -58,41 +63,57 @@ async function updateUserFullname(username, newFullname) {
 }
 
 // Update username
-async function updateUsername(oldUsername, newUsername) {
+async function updateUsername(userId, newUsername, oldUsername) {
     const query = `
         UPDATE users
         SET username = $1,
             updated_at = NOW()
-        WHERE username = $2
+        WHERE id = $2 AND username = $3
         RETURNING *;
     `;
-    const { rows } = await pool.query(query, [newUsername, oldUsername]);
+    const { rows } = await pool.query(query, [newUsername, userId, oldUsername]);
     return rows[0];
 }
 
 // Update/hapus profile picture
-async function updateProfilePicture(username, profilePictureUrl) {
+async function updateProfilePicture(userId, profilePictureUrl) {
     const query = `
         UPDATE users
         SET profile_picture_url = $1,
             updated_at = NOW()
-        WHERE username = $2
+        WHERE id = $2
         RETURNING *;
     `;
-    const { rows } = await pool.query(query, [profilePictureUrl, username]);
-    return rows[0];
+
+    const result = await pool.query(query, [profilePictureUrl, userId]);
+
+    if (!result || result.rows.length === 0) {
+        console.warn("⚠️ Update profile picture tidak mengubah row. userId:", userId);
+        return null;
+    }
+
+    console.log("💾 Foto profil berhasil disimpan ke DB:", userId);
+    return result.rows[0];
 }
 
-async function removeProfilePicture(username) {
+async function removeProfilePicture(userId) {
     const query = `
         UPDATE users
         SET profile_picture_url = NULL,
             updated_at = NOW()
-        WHERE username = $1
+        WHERE id = $1
         RETURNING *;
     `;
-    const { rows } = await pool.query(query, [username]);
-    return rows[0];
+
+    const result = await pool.query(query, [userId]);
+
+    if (!result || result.rows.length === 0) {
+        console.warn("⚠️ Remove profile picture tidak mengubah row. userId:", userId);
+        return null;
+    }
+
+    console.log("💾 Foto profil dihapus dari DB untuk userId:", userId);
+    return result.rows[0];
 }
 
 // Hapus user
@@ -115,5 +136,5 @@ module.exports = {
     updateProfilePicture,
     removeProfilePicture,
     verifyUserPin,
-    deleteUser
+    deleteUser,
 };

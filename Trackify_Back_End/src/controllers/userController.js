@@ -2,9 +2,7 @@ const userService = require('../services/userService');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-
 const SALT_ROUNDS = 10;
-
 
 // Registrasi user baru
 async function registerUser(req, res) {
@@ -14,28 +12,23 @@ async function registerUser(req, res) {
             return res.status(400).json({ error: 'Semua kolom wajib diisi.' });
         }
 
-
         const existingUser = await userService.findUserByUsername(username);
         if (existingUser) {
             return res.status(409).json({ error: 'Nama pengguna sudah digunakan.' });
         }
 
-
         // Buat PIN 4 digit
         const pin = String(Math.floor(1000 + Math.random() * 9000));
-
 
         const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
         const pinHash = await bcrypt.hash(pin, SALT_ROUNDS);
 
-
         const newUser = await userService.createUser(fullname, username, passwordHash, pinHash);
-
 
         // GENERATE TOKEN DENGAN USER ID - YANG BARU
         const token = jwt.sign(
             {
-                id: newUser.id, // <- TAMBAHKAN ID DI SINI
+                id: newUser.id, 
                 username: newUser.username,
                 fullname: newUser.fullname
             },
@@ -43,16 +36,15 @@ async function registerUser(req, res) {
             { expiresIn: process.env.JWT_EXPIRES_IN }
         );
 
-
         return res.status(201).json({
             message: 'Registrasi berhasil.',
             user: {
-                id: newUser.id, // <- KIRIM ID JUGA KE FRONTEND
+                id: newUser.id, 
                 username: newUser.username,
                 fullname: newUser.fullname,
                 pin: pin
             },
-            token // <- KIRIM TOKEN JUGA
+            token 
         });
     } catch (err) {
         console.error('Error detail:', err);
@@ -60,8 +52,7 @@ async function registerUser(req, res) {
     }
 }
 
-
-// Login user - YANG SUDAH DIPERBAIKI
+// Login user 
 async function loginUser(req, res) {
     try {
         const { username, password } = req.body;
@@ -69,21 +60,18 @@ async function loginUser(req, res) {
             return res.status(400).json({ error: 'Nama pengguna dan kata sandi wajib diisi.' });
         }
 
-
         const user = await userService.findUserByUsername(username);
         if (!user) {
             return res.status(404).json({ error: 'Akun tidak ditemukan. Pastikan informasi sudah benar atau lakukan registrasi jika belum memiliki akun.' });
         }
 
-
         const match = await bcrypt.compare(password, user.password_hash);
         if (!match) return res.status(401).json({ error: 'Kata sandi salah. Silakan coba lagi.' });
 
-
-        // GENERATE TOKEN DENGAN USER ID - YANG SUDAH DIPERBAIKI
+        // GENERATE TOKEN DENGAN USER ID 
         const token = jwt.sign(
             {
-                id: user.id, // <- INI YANG PENTING! TAMBAHKAN ID
+                id: user.id,  
                 username: user.username,
                 fullname: user.fullname
             },
@@ -91,11 +79,10 @@ async function loginUser(req, res) {
             { expiresIn: process.env.JWT_EXPIRES_IN }
         );
 
-
         return res.status(200).json({
             message: `Selamat datang kembali, ${user.fullname}!`,
             user: {
-                id: user.id, // <- KIRIM ID JUGA KE FRONTEND
+                id: user.id, 
                 username: user.username,
                 fullname: user.fullname,
                 profilePicture: user.profile_picture_url
@@ -107,7 +94,6 @@ async function loginUser(req, res) {
         return res.status(500).json({ error: 'Terjadi kesalahan server.' });
     }
 }
-
 
 // Verifikasi PIN untuk pemulihan password
 async function verifyPin(req, res) {
@@ -131,7 +117,6 @@ async function verifyPin(req, res) {
     }
 }
 
-
 // Reset password setelah verifikasi PIN
 async function resetPassword(req, res) {
     try {
@@ -140,13 +125,11 @@ async function resetPassword(req, res) {
             return res.status(400).json({ error: 'Username dan password baru wajib diisi.' });
         }
 
-
         const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
         const updatedUser = await userService.updateUserPassword(username, passwordHash);
         if (!updatedUser) {
             return res.status(404).json({ error: 'User tidak ditemukan.' });
         }
-
 
         return res.status(200).json({ message: 'Password berhasil diubah.', user: updatedUser });
     } catch (err) {
@@ -154,7 +137,6 @@ async function resetPassword(req, res) {
         return res.status(500).json({ error: 'Terjadi kesalahan server.' });
     }
 }
-
 
 // Update nama lengkap
 async function updateFullname(req, res) {
@@ -164,7 +146,6 @@ async function updateFullname(req, res) {
             return res.status(400).json({ error: 'Username dan fullname baru wajib diisi.' });
         }
 
-
         const updatedUser = await userService.updateUserFullname(username, newFullname);
         return res.status(200).json({ message: 'Nama lengkap diperbarui.', user: updatedUser });
     } catch (err) {
@@ -173,30 +154,44 @@ async function updateFullname(req, res) {
     }
 }
 
-
 // Update username
 async function updateUsername(req, res) {
     try {
-        const { oldUsername, newUsername } = req.body;
-        if (!oldUsername || !newUsername) {
-            return res.status(400).json({ error: 'Old dan new username wajib diisi.' });
+        const userId = req.user.id;
+        const currentUsername = req.body.currentUsername;
+        const newUsername = req.body.newUsername;
+
+        if (!newUsername) {
+            return res.status(400).json({ error: 'Username wajib diisi.' });
         }
 
+        // Jika username sama, tidak perlu update
+        if (newUsername === currentUsername) {
+            return res.status(400).json({ error: "Username baru tidak boleh sama dengan username lama." });
+        }
 
         const exists = await userService.findUserByUsername(newUsername);
+
         if (exists) {
             return res.status(409).json({ error: 'Username baru sudah digunakan.' });
         }
 
+        const updatedUser = await userService.updateUsername(
+            userId,
+            newUsername,
+            currentUsername
+        );
 
-        const updatedUser = await userService.updateUsername(oldUsername, newUsername);
+        if (!updatedUser) {
+            return res.status(400).json({ error: 'Gagal memperbarui username.' });
+        }
+
         return res.status(200).json({ message: 'Username diperbarui.', user: updatedUser });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ error: 'Terjadi kesalahan server.' });
     }
 }
-
 
 // Update password
 async function updatePassword(req, res) {
@@ -205,7 +200,6 @@ async function updatePassword(req, res) {
         if (!username || !newPassword) {
             return res.status(400).json({ error: 'Username dan password baru wajib diisi.' });
         }
-
 
         const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
         const updatedUser = await userService.updateUserPassword(username, passwordHash);
@@ -216,23 +210,30 @@ async function updatePassword(req, res) {
     }
 }
 
-
-// Update atau hapus foto profil
+// Update foto profil
 async function updateProfilePic(req, res) {
     try {
-        const { username, profilePictureUrl } = req.body;
-        if (!username) {
-            return res.status(400).json({ error: 'Username wajib diisi.' });
+        const userId = req.user && req.user.id;
+        const { profilePictureUrl } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ error: 'Id user tidak ditemukan.' });
         }
 
+        if (profilePictureUrl === undefined) {
+            return res.status(400).json({ error: 'profilePictureUrl wajib dikirim.' });
+        }
 
         let updatedUser;
         if (profilePictureUrl) {
-            updatedUser = await userService.updateProfilePicture(username, profilePictureUrl);
+            updatedUser = await userService.updateProfilePicture(userId, profilePictureUrl);
         } else {
-            updatedUser = await userService.removeProfilePicture(username);
+            updatedUser = await userService.removeProfilePicture(userId);
         }
 
+        if (!updatedUser) {
+            return res.status(500).json({ error: 'Gagal menyimpan perubahan foto profil.' });
+        }
 
         return res.status(200).json({ message: 'Foto profil diperbarui.', user: updatedUser });
     } catch (err) {
@@ -241,6 +242,28 @@ async function updateProfilePic(req, res) {
     }
 }
 
+// Hapus foto profil
+async function deleteProfilePic(req, res) {
+    try {
+        const userId = req.user && req.user.id;
+
+        if (!userId) {
+            return res.status(400).json({ error: 'Id user tidak ditemukan.' });
+        }
+
+        const updatedUser = await userService.removeProfilePicture(userId);
+
+        if (!updatedUser) {
+            return res.status(500).json({ error: 'Gagal menghapus foto profil.' });
+        }
+
+        return res.status(200).json({ message: 'Foto profil dihapus.', user: updatedUser });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Terjadi kesalahan server.' });
+    }
+}
 
 // Hapus akun
 async function deleteUser(req, res) {
@@ -249,7 +272,6 @@ async function deleteUser(req, res) {
         if (!username) {
             return res.status(400).json({ error: 'Username wajib diisi.' });
         }
-
 
         const deletedUser = await userService.deleteUser(username);
         return res.status(200).json({ message: 'Akun dihapus.', user: deletedUser });
@@ -309,6 +331,7 @@ module.exports = {
     updateUsername,
     updatePassword,
     updateProfilePic,
+    deleteProfilePic,
     deleteUser,
     getUserProfile
 };

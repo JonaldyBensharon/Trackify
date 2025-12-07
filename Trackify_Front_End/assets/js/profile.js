@@ -1,3 +1,5 @@
+import { API_URL } from "./config.js"; 
+
 document.addEventListener('DOMContentLoaded', function() {
     // ========== ELEMENTS ==========
     const backButton = document.getElementById('backButton');
@@ -7,16 +9,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelButton = document.getElementById('cancelButton');
     const overlay = document.getElementById('overlay');
 
-
     const fullNameInput = document.getElementById('fullName');
     const usernameInput = document.getElementById('username');
     const profileImage = document.getElementById('profileImage');
     const editAvatar = document.getElementById('editAvatar');
 
-
     const passwordButton = document.getElementById('passwordButton');
     const passwordModal = document.getElementById('passwordModal');
-
 
     const confirmDeleteModal = document.getElementById('confirmDeleteModal');
     const finalDeleteModal = document.getElementById('finalDeleteModal');
@@ -25,17 +24,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmNo = document.getElementById('confirmNo');
     const finalYes = document.getElementById('finalYes');
     const finalNo = document.getElementById('finalNo');
-   
+
     const saveCropToProfile = document.getElementById('saveCropToProfile');
     const cancelSaveCrop = document.getElementById('cancelSaveCrop');
     const saveCropContainer = document.getElementById('saveCropContainer');
-
 
     const avatarModal = document.getElementById('avatarModal');
     const closeAvatarModal = document.getElementById('closeAvatarModal');
     const changeAvatar = document.getElementById('changeAvatar');
     const removeAvatar = document.getElementById('removeAvatar');
-
 
     const tabReset = document.getElementById('tabReset');
     const tabForgot = document.getElementById('tabForgot');
@@ -54,16 +51,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const newPasswordInputForgot = document.getElementById('newPasswordInputForgot');
     const confirmNewPasswordInputForgot = document.getElementById('confirmNewPasswordInputForgot');
 
-
     const cancelResetStage1 = document.getElementById('cancelResetStage1');
     const cancelResetStage2 = document.getElementById('cancelResetStage2');
     const cancelLupaPassword = document.getElementById('cancelLupaPassword');
     const cancelForgotStage2 = document.getElementById('cancelForgotStage2');
 
-
     // ========== VARIABLES ==========
     let currentUser = null;
-    const API_BASE = 'http://localhost:3000/api/users';
+    const API_BASE = `${API_URL}/users`;
     let cropper = null;
    
     // ========== INITIALIZATION ==========
@@ -73,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
    
     if (!token || !userData) {
         // Redirect ke login jika belum login
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
         return;
     }
    
@@ -117,11 +112,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Token expired
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
-                window.location.href = 'login.html';
+                window.location.href = 'index.html';
                 return;
             }
            
             if (!response.ok) {
+                console.error("Failed to fetch profile:", response.status);
                 return;
             }
            
@@ -151,7 +147,6 @@ document.addEventListener('DOMContentLoaded', function() {
         backButton.addEventListener('click', () => window.location.href = 'beranda.html');
     }
 
-
     if (saveCropToProfile) {
         saveCropToProfile.addEventListener('click', function() {
             console.log('🖱️ Tombol Simpan ke Profil diklik');
@@ -162,7 +157,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-
 
     if (cancelSaveCrop) {
         cancelSaveCrop.addEventListener('click', function() {
@@ -594,7 +588,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-
     // ========== FUNGSI KAMERA BARU ==========
     function openCamera() {
         console.log('📱 Meminta akses kamera...');
@@ -908,22 +901,20 @@ function openCropper(imageSrc) {
         // 3. Upload ke server (jika ada API)
         try {
             console.log('📤 Mengupload ke server...');
-            const response = await fetch(`${API_BASE}/upload-avatar`, {
+            const response = await fetch(`${API_BASE}/update-profile-picture`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    username: currentUser.username,
-                    image: imageDataUrl
+                    profilePictureUrl: imageDataUrl
                 })
             });
            
             if (response.ok) {
                 const data = await response.json();
                 console.log('✅ Upload ke server berhasil:', data);
-                showNotification('✅ Foto profil berhasil diperbarui!', 'success');
             } else {
                 console.warn('⚠️ Upload gagal, tetap simpan di cache');
                 showNotification('Foto disimpan di cache lokal', 'info');
@@ -971,15 +962,12 @@ function openCropper(imageSrc) {
                 profileImage.src = "assets/images/ikon_profil.avif";
                
                 try {
-                    await fetch(`${API_BASE}/remove-avatar`, {
+                    await fetch(`${API_BASE}/remove-profile-picture`, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            username: currentUser.username
-                        })
+                        }
                     });
                    
                     currentUser.profile_picture = null;
@@ -1042,11 +1030,39 @@ function openCropper(imageSrc) {
             }
         }
        
-        // Jika username berubah (perlu endpoint khusus)
+        // Jika username berubah
         if (newUsername !== currentUser.username) {
-            showNotification("Fitur ubah username belum tersedia", "info");
-            // Reset ke username lama
-            if (usernameInput) usernameInput.value = currentUser.username;
+            try {
+                console.log("DEBUG currentUser = ", currentUser);
+                console.log("DEBUG currentUser.username = ", currentUser.username);
+                const response = await fetch(`${API_BASE}/update-username`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        newUsername: newUsername,
+                        currentUsername: currentUser.username,
+                    })
+                });
+               
+                const data = await response.json();
+               
+                if (!response.ok) {
+                    showNotification(data.error || "Gagal update Username", "error");
+                    return;
+                }
+               
+                // Update local data
+                currentUser.username = newUsername;
+                localStorage.setItem('user', JSON.stringify(currentUser));
+               
+            } catch (error) {
+                console.error('Error updating username:', error);
+                showNotification("Gagal update usen", "error");
+                return;
+            }
         }
        
         // Update UI
