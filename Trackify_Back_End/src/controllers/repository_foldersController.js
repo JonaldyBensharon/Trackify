@@ -3,7 +3,7 @@ const repository_foldersService = require("../services/repository_foldersService
 // Create folder
 async function createFolder(req, res) {
     try {
-        const user_id = req.user.id; // From JWT token
+        const user_id = req.user.id; 
         const { folder_name, color } = req.body;
 
         const folder = await repository_foldersService.createFolder(
@@ -25,7 +25,7 @@ async function createFolder(req, res) {
 // Get folders by user
 async function getFolders(req, res) {
     try {
-        const userId = req.user.id; // From JWT token
+        const userId = req.user.id; 
 
         const folders = await repository_foldersService.getFoldersByUserId(userId);
 

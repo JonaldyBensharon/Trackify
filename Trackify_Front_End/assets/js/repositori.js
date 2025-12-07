@@ -1,8 +1,9 @@
+import { API_URL } from "./config.js";
+
 const hamburgerIcon = document.getElementById('hamburgerIcon');
 const closeSidebar = document.getElementById('closeSidebar');
 const sidebar = document.getElementById('sidebar');
 const sidebarOverlay = document.getElementById('sidebarOverlay');
-
 
 console.log('🔍 Sidebar Elements:', {
     hamburgerIcon: !!hamburgerIcon,
@@ -10,7 +11,6 @@ console.log('🔍 Sidebar Elements:', {
     sidebar: !!sidebar,
     sidebarOverlay: !!sidebarOverlay
 });
-
 
 // Buka sidebar
 if (hamburgerIcon) {
@@ -27,7 +27,6 @@ if (hamburgerIcon) {
     console.error('❌ Hamburger icon tidak ditemukan');
 }
 
-
 // Tutup sidebar
 if (closeSidebar) {
     closeSidebar.addEventListener('click', function(e) {
@@ -41,7 +40,6 @@ if (closeSidebar) {
     });
 }
 
-
 // Tutup sidebar ketika overlay diklik
 if (sidebarOverlay) {
     sidebarOverlay.addEventListener('click', function() {
@@ -51,7 +49,6 @@ if (sidebarOverlay) {
         document.body.style.overflow = '';
     });
 }
-
 
 // Tutup sidebar ketika ESC ditekan
 document.addEventListener('keydown', function(event) {
@@ -65,7 +62,6 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-
 console.log("repository-final.js loaded");
 const demoFileUrl = "/mnt/data/ad2af446-efbf-4ff0-91c8-df4e3d487831.jpg";
 const $ = sel => document.querySelector(sel);
@@ -73,7 +69,7 @@ const $$ = sel => Array.from(document.querySelectorAll(sel));
 
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:3000/api'; // Backend port 5000
+const API_BASE_URL = API_URL; 
 
 
 // Helper functions for API calls
@@ -1554,16 +1550,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load folders dari backend
     await loadFoldersFromBackend();
    
-    // Tambahkan folder dari cache jika masih ada yang belum ditampilkan
-    const cachedFolders = getFolderList();
-    const displayedFolderIds = $$('.card-wrapper:not(:last-child)').map(w => w.dataset.folderId);
+    // Tambahkan folder dari cache jika masih ada yang belum ditampilkan (Ini menyebabkan render dua kali)
+    // const cachedFolders = getFolderList();
+    // const displayedFolderIds = $$('.card-wrapper:not(:last-child)').map(w => w.dataset.folderId);
    
-    cachedFolders.forEach(folder => {
-        if (!displayedFolderIds.includes(folder.id) && !displayedFolderIds.includes(folder.local_id)) {
-            createFolderFromData(folder);
-        }
-    });
-
+    // cachedFolders.forEach(folder => {
+    //     if (!displayedFolderIds.includes(folder.id) && !displayedFolderIds.includes(folder.local_id)) {
+    //         createFolderFromData(folder);
+    //     }
+    // });
 
     // small animation for cards (optional)
     $$('.card-wrapper').forEach((wrapper, i) => {
@@ -1575,7 +1570,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             wrapper.style.transform = 'translateY(0)';
         }, i*80);
     });
-
 
     // Preload demo file into folder "Satu" if available and not already present
     if (demoFileUrl) {
