@@ -1,5 +1,7 @@
+#Back-end/Dockerfile
 FROM node:18-alpine
 
+#direktori kerja
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
