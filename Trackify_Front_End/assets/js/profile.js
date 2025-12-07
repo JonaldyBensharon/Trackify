@@ -512,7 +512,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
-                window.location.href = 'login.html';
+                window.location.href = 'index.html';
             }, 1500);
            
         } catch (error) {
