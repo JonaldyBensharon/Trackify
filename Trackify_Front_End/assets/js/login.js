@@ -323,10 +323,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Pesan Selamat
         showPopup(`Selamat datang, ${userData.fullname || userData.username}!`);
 
-        // Redirect ke profile.html setelah 2 detik
+        if (res.ok && data.token) {
+            sessionStorage.setItem('token', data.token);
+        } else {
+            showNotification('Login gagal', 'error');
+        }
+        // Redirect ke profile.html setelah 4 detik
         setTimeout(() => {
           window.location.href = 'beranda.html';
-        }, 2000);
+        }, 4000);
        
       } catch (err) {
         console.error(err);
