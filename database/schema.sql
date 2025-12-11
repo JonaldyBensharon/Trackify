@@ -1,6 +1,3 @@
--- Init schema for Trackify in current database (POSTGRES_DB)
--- Assumes DB and user are created by container env vars.
-
 -- Buat struktur tabel (entitas)
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -12,15 +9,6 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
--- Silakan tambahkan tabel (entitas) serta relasi yang dibuat mengikuti format sebelumnya.
-
-/* Jika ingin tambahkan isi untuk cek langsung (opsional), dapat masukkan langsung value. Misal:
-
-INSERT INTO users (fullname, username, password_hash, pin, profile_picture_url, created_at, updated_at)
-VALUES ('Kartono Budiman', 'KartonoBd', '$2b$10$b7y.PnXZxIsuQfA6qtsBUORe5tYx7CseDi9Nw97vmMl2KH3vvKdee', '$2b$10$iWv41pmWKw/eQyHJEnKrV.vnnEDhX9Tiq.yhPFy.BcPckYQl9izl6', null, '2025-11-29 21:25:05.13699', '2025-11-29 21:25:05.13699')
-ON CONFLICT DO NOTHING; 
-
-*/
 
  CREATE TABLE  IF NOT EXISTS goals (
     id SERIAL PRIMARY KEY,
