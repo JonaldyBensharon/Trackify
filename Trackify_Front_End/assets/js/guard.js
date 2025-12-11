@@ -26,6 +26,4 @@ window.addEventListener('pageshow', (event) => {
     }
 });
 
-// Optional: jika ingin menghapus token saat browser ditutup
-// sessionStorage otomatis hilang saat browser/tab ditutup
-// Jadi tidak perlu log-out eksplisit jika pakai sessionStorage
+
